@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+ 
+<head>
+    <title> Angular  @ng-Idle </title>   
+    <link rel="stylesheet" type="text/css" href= "https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href= "https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+</head>
+ 
+<body style="text-align:center">
+    <h1 style="color:green">From GeeksforGeeks</h1>
+    <h3 style="color:purple">AngularJS (v1) @ng-idle</h3>
+    <div ng-app="myApp" class="ng-scope">
+        <div ng-controller="DemoCtrl" class="ng-scope">
+            <p>
+                <button type="button"
+                        class="btn btn-success"
+                        ng-hide="started"
+                        ng-click="start()"> Login to start session
+                </button>
+                <button type="button"
+                        class="btn btn-danger ng-hide"
+                        data-ng-show="started"
+                        data-ng-click="stop()"> Reset session
+                </button>
+            </p>
+        </div>
+        <script type="text/ng-template"
+                id="warning-dialog.html">
+            <div class="modal-header">
+                <h3>
+                    Idle mode is activated,
+                    because you have been idle too long.
+                    As a result, you are going to be
+                    logged out after a few moments.
+                </h3>
+            </div>
+            <div idle-countdown="countdown"
+                 ng-init="countdown=5"
+                 class="modal-body">
+                <progressbar max="15"
+                             value="15"
+                             animate="false"
+                             class="progress-striped active">
+                    DO SOMETHING FAST! You are getting
+                    logged out in <b>{{countdown}}</b> second(s).
+                </progressbar>
+            </div>
+        </script>
+        <script type="text/ng-template"
+                id="timedout-dialog.html">
+            <div class="modal-header">
+                <h3>Sorry, you have been Logged Out</h3>
+            </div>
+            <div class="modal-body">
+                <p>
+                    This program was idle for far too long.
+                    So we apologize for logging you out,
+                    but we had no option.
+                </p>
+            </div>
+        </script>
+    </div>
+
+    <script type="text/javascript" src= "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.8/angular.js"></script>
+    <script type="text/javascript" src= "https://rawgithub.com/hackedbychinese/ng-idle/master/angular-idle.js"></script>
+    <script type="text/javascript" src= "https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.12.1/ui-bootstrap-tpls.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('myApp', ['ngIdle', 'ui.bootstrap']);
+        app.controller('DemoCtrl', function($scope, Idle, Keepalive, $modal) {
+            $scope.started = false;
+     
+            function closeModals() {
+                if($scope.warning) {
+                    $scope.warning.close();
+                    $scope.warning = null;
+                }
+                if($scope.timedout) {
+                    $scope.timedout.close();
+                    $scope.timedout = null;
+                }
+            }
+            $scope.$on('IdleStart', function() {
+                closeModals();
+                $scope.warning = $modal.open({
+                    templateUrl: 'warning-dialog.html',
+                    windowClass: 'modal-warning'
+                });
+            });
+            $scope.$on('IdleEnd', function() {
+                closeModals();
+            });
+            $scope.$on('IdleTimeout', function() {
+                closeModals();
+                $scope.timedout = $modal.open({
+                    templateUrl: 'timedout-dialog.html',
+                    windowClass: 'modal-danger'
+                });
+            });
+            $scope.start = function() {
+                console.log('start');
+                closeModals();
+                Idle.watch();
+                $scope.started = true;
+            };
+            $scope.stop = function() {
+                console.log('stop');
+                closeModals();
+                Idle.unwatch();
+                $scope.started = false;
+            };
+        });
+        app.config(function(IdleProvider, KeepaliveProvider) {
+            IdleProvider.idle(15);
+            IdleProvider.timeout(15);
+            KeepaliveProvider.interval(10);
+        });
+    </script>
+</body>
+</html>
